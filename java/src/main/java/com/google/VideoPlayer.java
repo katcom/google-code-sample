@@ -4,12 +4,18 @@ import java.util.Collections;
 import java.util.List;
 import java.math.*;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Set;
 public class VideoPlayer {
   private final VideoLibrary videoLibrary;
   private Video currentVideo;
   private boolean isPaused;
+  private HashMap<String,List<Video>> playlists;
   public VideoPlayer() {
     this.videoLibrary = new VideoLibrary();
+    playlists = new HashMap<String,List<Video>>();
+
   }
 
   public void numberOfVideos() {
@@ -126,31 +132,167 @@ public class VideoPlayer {
   }
 
   public void createPlaylist(String playlistName) {
-    System.out.println("createPlaylist needs implementation");
+    if(playlists == null){
+      playlists = new HashMap<String,List<Video>>();
+    }
+    if(playlists.get(playlistName) == null){
+      playlists.put(playlistName, new ArrayList<Video>());
+      System.out.printf("Successfully created new playlist: %s\n",playlistName);
+    }else{
+      System.out.println("Cannot create playlist: A playlist with the same name already exists");
+    }
   }
 
   public void addVideoToPlaylist(String playlistName, String videoId) {
-    System.out.println("addVideoToPlaylist needs implementation");
+    //System.out.println("addVideoToPlaylist needs implementation");
+    List<Video> playlist = null;
+    for(String name: playlists.keySet()){
+      if(name.toLowerCase().equals(playlistName.toLowerCase())){
+        playlist = playlists.get(name);
+        break;
+      }
+    }
+
+    if(playlist == null){
+      System.out.printf("Cannot add video to %s: Playlist does not exist\n",playlistName);
+      return;
+    }
+    
+    boolean isFound = false;
+    for(Video v:playlist){
+      if(v.getVideoId().equals(videoId)){
+        isFound = true;
+        break;
+      }
+    }
+    if(!isFound){
+      Video v = videoLibrary.getVideo(videoId);
+      if(v == null){
+        System.out.printf("Cannot add video to %s: Video does not exist\n",videoId);
+        return;
+      }  
+      System.out.printf("Added video to %s: %s\n",playlistName,v.getTitle());
+    }else{
+      System.out.printf("Cannot add video to %s: Video already added\n",playlistName);
+    }
   }
 
   public void showAllPlaylists() {
-    System.out.println("showAllPlaylists needs implementation");
+    //System.out.println("showAllPlaylists needs implementation");
+    if(playlists == null || playlists.size() == 0){
+      System.out.println("No playlists exist yet");
+    }else{
+      System.out.printf("Showing all playlists:");
+      List<String> playlistNames = new ArrayList<>(playlists.keySet());
+      Collections.sort(playlistNames,String::compareTo);
+      for(String listName :playlistNames){
+        System.out.println(listName);
+      }
+    }
+    
   }
 
   public void showPlaylist(String playlistName) {
-    System.out.println("showPlaylist needs implementation");
+    //System.out.println("showPlaylist needs implementation");
+    List<Video> list = null;
+    if(playlists == null || playlists.size() == 0){
+      System.out.printf("Cannot show Playlist %s: Playlist does not exist\n",playlistName);
+      return;
+    }
+    for(String name: playlists.keySet()){
+      if(name.toLowerCase().equals(playlistName.toLowerCase())){
+        list = playlists.get(name);
+        break;
+      }
+    }
+    if(list == null){
+      System.out.printf("Cannot show Playlist %s: Playlist does not exist\n",playlistName);
+      return;
+    }
+    System.out.printf("Showing playlist: %s\n",playlistName);
+    if(list.size() == 0){
+      System.out.println("No videos here yet");
+      
+    }else{
+      for(Video video:list){
+        System.out.println(getVideoSummary(video));
+      }
+    }
   }
-
+  private List<Video> getPlayList(String playlistName){
+    List<Video> list = null;
+    for(String name: playlists.keySet()){
+      if(name.toLowerCase().equals(playlistName.toLowerCase())){
+        list = playlists.get(playlistName);
+        break;
+      }
+    }
+    return list;
+  }
+  private Video getVideoFromPlaylist(List<Video> playlist,String videoId){
+    for(Video video:playlist){
+      if(video.getVideoId().equals(videoId))
+        return video;
+    }
+    return null;
+  }
   public void removeFromPlaylist(String playlistName, String videoId) {
-    System.out.println("removeFromPlaylist needs implementation");
+    //System.out.println("removeFromPlaylist needs implementation");
+    List<Video> list = getPlayList(playlistName);
+    if(list == null){
+      System.out.printf("Cannot add video to %s: Playlist does not exist\n",playlistName); 
+      return;
+    }
+    
+    boolean isFound = false;
+    Video removedVideo = null;
+    for(Video video:list){
+      if(video.getVideoId().equals(videoId)){
+        removedVideo = video;
+        isFound = true;
+        break;
+      }
+    }
+
+    if(isFound){
+      list.remove(removedVideo);
+      System.out.printf("Removed video from %s",removedVideo.getTitle());
+    }else{
+      System.out.printf("Cannot add video to %s: Video is not in playlist\n",removedVideo.getTitle()); 
+    }
   }
 
   public void clearPlaylist(String playlistName) {
-    System.out.println("clearPlaylist needs implementation");
+    //System.out.println("clearPlaylist needs implementation");
+    List<Video> list = getPlayList(playlistName);
+    if(list == null){
+      System.out.printf("Cannot clear playlist %s: Playlist does not exist\n",playlistName);
+    }else{
+      if(playlists.size() == 0){
+        System.out.println("No videos here yet.");
+        return;
+      }
+      for(String key:playlists.keySet()){
+        if(key.toLowerCase().equals(playlistName.toLowerCase())){
+          playlists.put(key, new ArrayList<Video>());
+          System.out.printf("Successfully removed all videos from %s\n",playlistName);
+          break;
+        }
+      }
+
+    }
   }
 
   public void deletePlaylist(String playlistName) {
-    System.out.println("deletePlaylist needs implementation");
+    boolean isFound = true;
+    for(String key:playlists.keySet()){
+      if(key.toLowerCase().equals(playlistName.toLowerCase())){
+        playlists.remove(key);
+        System.out.printf("Deleted playlist: %s",playlistName);
+        return;
+      }
+    }
+    System.out.printf("Cannot delete playlist %s: Playlist does not exist\n",playlistName);
   }
 
   public void searchVideos(String searchTerm) {
