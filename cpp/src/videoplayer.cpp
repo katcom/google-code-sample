@@ -1,5 +1,5 @@
 #include "videoplayer.h"
-
+#include <string>
 #include <iostream>
 
 void VideoPlayer::numberOfVideos() {
@@ -8,7 +8,20 @@ void VideoPlayer::numberOfVideos() {
 }
 
 void VideoPlayer::showAllVideos() {
-  std::cout << "showAllVideos needs implementation" << std::endl;
+  std::cout << "Here is a list of all available videos:" << std::endl;
+  for(auto &video:mVideoLibrary.getVideos()){
+    std::string entryInfo =  video.getTitle() + "(" + video.getVideoId()+")";
+    std::string tagsInfo = "[";
+    auto tags = video.getTags();
+    for(int i=0;i<tags.size();i++){
+      tagsInfo.append(tags[i]);
+      if(i != tags.size()-1)
+         tagsInfo.append(" ");
+    }
+    auto temp = tagsInfo + "]";
+    entryInfo += tagsInfo;
+    std::cout << temp << std::endl;
+  }
 }
 
 void VideoPlayer::playVideo(const std::string& videoId) {
